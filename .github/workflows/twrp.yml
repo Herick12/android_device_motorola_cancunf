@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # 1. Checkout do seu repo
+    # 1. Checkout do repo
     - name: Checkout
       uses: actions/checkout@v4
 
@@ -26,18 +26,18 @@ jobs:
         chmod +x $HOME/bin/repo
         echo "$HOME/bin" >> $GITHUB_PATH
 
-    # 4. Init TWRP
+    # 4. Init TWRP source
     - name: Init TWRP
       run: |
         mkdir twrp
         cd twrp
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp -b twrp-12.1
 
-    # 5. Sync source
+    # 5. 🔥 SYNC OTIMIZADO (MAIS RÁPIDO E ECONÔMICO)
     - name: Sync source
       run: |
         cd twrp
-        repo sync -j2
+        repo sync -j4 --current-branch --no-tags
 
     # 6. Add device tree
     - name: Add device tree
@@ -58,18 +58,4 @@ jobs:
         source build/envsetup.sh
         lunch twrp_cancunf-eng
         export ALLOW_MISSING_DEPENDENCIES=true
-        export SKIP_ABI_CHECKS=true
-        mka recoveryimage || true
-
-    # 9. 🔥 DEBUG STEP (achar onde o recovery foi gerado)
-    - name: Find recovery output
-      run: |
-        echo "Searching for recovery image..."
-        find twrp/out -type f -name "*.img" || true
-
-    # 10. Upload artifacts (genérico pra não falhar)
-    - name: Upload build outputs
-      uses: actions/upload-artifact@v4
-      with:
-        name: twrp-output
-        path: twrp/out/**/*.img
+        export SK
