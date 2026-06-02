@@ -1,0 +1,53 @@
+name: Build TWRP Recovery
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git-core gnupg flex bison build-essential zip curl \
+          zlib1g-dev libc6-dev-i386 libncurses5-dev x11proto-core-dev \
+          libx11-dev libgl1-mesa-dev g++-multilib gcc-multilib \
+          lib32z1-dev liblz4-tool libssl-dev bc ccache python3 python3-pip \
+          repo openjdk-8-jdk
+
+      - name: Setup repo tool
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Sync TWRP source
+        run: |
+          mkdir twrp
+          cd twrp
+          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp -b twrp-12.1
+          repo sync -j4
+
+      - name: Clone device tree
+        run: |
+          cd twrp/device/motorola
+          git clone https://github.com/Herick12/android_device_motorola_cancunf.git cancunf
+
+      - name: Build recovery
+        run: |
+          cd twrp
+          source build/envsetup.sh
+          lunch twrp_cancunf-eng
+          mka recoveryimage
+
+      - name: Upload recovery
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery
+          path: twrp/out/target/product/cancunf/recovery.img
