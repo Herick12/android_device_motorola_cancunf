@@ -5,16 +5,17 @@ TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := generic
 
-TARGET_2ND_ARCH :=
-TARGET_2ND_ARCH_VARIANT :=
-TARGET_2ND_CPU_ABI :=
-TARGET_2ND_CPU_ABI2 :=
-TARGET_2ND_CPU_VARIANT :=
+# IMPORTANT: 64-bit support
+TARGET_SUPPORTS_64_BIT_APPS := true
+TARGET_IS_64_BIT := true
 
-# TWRP
+# Disable 32-bit-only build
+TARGET_SUPPORTS_32_BIT_APPS := false
+
+# TWRP flags
 TW_THEME := portrait_hdpi
 TW_INCLUDE_CRYPTO := true
 TW_USE_TOOLBOX := true
 
-# Device
+# Device path
 DEVICE_PATH := device/motorola/cancunf
