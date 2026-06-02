@@ -1,4 +1,4 @@
-name: Build TWRP Recovery
+name: TWRP Build
 
 on:
   workflow_dispatch:
@@ -8,42 +8,54 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y git-core gnupg flex bison build-essential zip curl \
-          zlib1g-dev libc6-dev-i386 libncurses5-dev x11proto-core-dev \
-          libx11-dev libgl1-mesa-dev g++-multilib gcc-multilib \
-          lib32z1-dev liblz4-tool libssl-dev bc ccache python3 repo openjdk-8-jdk
+    # 1. Baixar seu repositório
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Setup repo tool
-        run: |
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-          chmod a+x ~/bin/repo
-          echo "$HOME/bin" >> $GITHUB_PATH
+    # 2. Dependências
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git wget curl bc build-essential python3
 
-      - name: Init TWRP source
-        run: |
-          mkdir twrp
-          cd twrp
-          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp -b twrp-12.1
-          repo sync -j2
+    # 3. Instalar repo
+    - name: Install repo tool
+      run: |
+        mkdir -p $HOME/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > $HOME/bin/repo
+        chmod +x $HOME/bin/repo
+        echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Clone device tree
-        run: |
-          cd twrp
-          git clone https://github.com/Herick12/android_device_motorola_cancunf.git device/motorola/cancunf
+    # 4. Inicializar TWRP
+    - name: Init TWRP
+      run: |
+        mkdir twrp
+        cd twrp
+        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp -b twrp-12.1
 
-      - name: Build recovery
-        run: |
-          cd twrp
-          source build/envsetup.sh
-          lunch twrp_cancunf-eng
-          mka recoveryimage
+    # 5. Sync do source
+    - name: Sync source
+      run: |
+        cd twrp
+        repo sync -j2
 
-      - name: Upload recovery
-        uses: actions/upload-artifact@v4
-        with:
-          name: recovery
-          path: twrp/out/target/product/cancunf/recovery.img
+    # 6. 🔥 AQUI ESTÁ A CORREÇÃO PRINCIPAL (SEU ERRO)
+    - name: Add device tree
+      run: |
+        mkdir -p twrp/device/motorola
+        cp -r device/motorola/cancunf twrp/device/motorola/
+
+    # 7. Build do TWRP
+    - name: Build recovery
+      run: |
+        cd twrp
+        source build/envsetup.sh
+        lunch twrp_cancunf-eng
+        mka recoveryimage
+
+    # 8. Upload do recovery
+    - name: Upload recovery
+      uses: actions/upload-artifact@v4
+      with:
+        name: recovery
+        path: twrp/out/target/product/*/recovery.img
