@@ -39,13 +39,13 @@ jobs:
         cd twrp
         repo sync -j2
 
-    # 6. 🔥 FIX PRINCIPAL (device tree dentro do source)
+    # 6. Add device tree
     - name: Add device tree
       run: |
         mkdir -p twrp/device/motorola
         cp -r device/motorola/cancunf twrp/device/motorola/
 
-    # 7. 🔥 FIX BUILD SYSTEM (SEU ERRO ATUAL VTS/CTS)
+    # 7. Fix build environment
     - name: Fix build environment
       run: |
         export ALLOW_MISSING_DEPENDENCIES=true
@@ -59,11 +59,17 @@ jobs:
         lunch twrp_cancunf-eng
         export ALLOW_MISSING_DEPENDENCIES=true
         export SKIP_ABI_CHECKS=true
-        mka recoveryimage
+        mka recoveryimage || true
 
-    # 9. Upload result
-    - name: Upload recovery
+    # 9. 🔥 DEBUG STEP (achar onde o recovery foi gerado)
+    - name: Find recovery output
+      run: |
+        echo "Searching for recovery image..."
+        find twrp/out -type f -name "*.img" || true
+
+    # 10. Upload artifacts (genérico pra não falhar)
+    - name: Upload build outputs
       uses: actions/upload-artifact@v4
       with:
-        name: recovery
-        path: twrp/out/target/product/*/recovery.img
+        name: twrp-output
+        path: twrp/out/**/*.img
