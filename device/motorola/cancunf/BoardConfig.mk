@@ -5,17 +5,23 @@ TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT := generic
 
-# IMPORTANT: 64-bit support
 TARGET_SUPPORTS_64_BIT_APPS := true
 TARGET_IS_64_BIT := true
-
-# Disable 32-bit-only build
 TARGET_SUPPORTS_32_BIT_APPS := false
+
+# 🔥 Kernel config (FIX DO SEU ERRO)
+BOARD_KERNEL_IMAGE_NAME := Image
+TARGET_PREBUILT_KERNEL :=
+BOARD_KERNEL_SEPARATED_DTBO := false
+
+# Boot image config
+BOARD_BOOT_HEADER_VERSION := 2
 
 # TWRP flags
 TW_THEME := portrait_hdpi
 TW_INCLUDE_CRYPTO := true
 TW_USE_TOOLBOX := true
+TW_INCLUDE_NTFS := true
 
 # Device path
 DEVICE_PATH := device/motorola/cancunf
