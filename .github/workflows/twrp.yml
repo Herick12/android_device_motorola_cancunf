@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # 1. Baixar seu repositório
+    # 1. Checkout do seu repo
     - name: Checkout
       uses: actions/checkout@v4
 
@@ -18,7 +18,7 @@ jobs:
         sudo apt update
         sudo apt install -y git wget curl bc build-essential python3
 
-    # 3. Instalar repo
+    # 3. Repo tool
     - name: Install repo tool
       run: |
         mkdir -p $HOME/bin
@@ -26,34 +26,42 @@ jobs:
         chmod +x $HOME/bin/repo
         echo "$HOME/bin" >> $GITHUB_PATH
 
-    # 4. Inicializar TWRP
+    # 4. Init TWRP
     - name: Init TWRP
       run: |
         mkdir twrp
         cd twrp
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp -b twrp-12.1
 
-    # 5. Sync do source
+    # 5. Sync source
     - name: Sync source
       run: |
         cd twrp
         repo sync -j2
 
-    # 6. 🔥 AQUI ESTÁ A CORREÇÃO PRINCIPAL (SEU ERRO)
+    # 6. 🔥 FIX PRINCIPAL (device tree dentro do source)
     - name: Add device tree
       run: |
         mkdir -p twrp/device/motorola
         cp -r device/motorola/cancunf twrp/device/motorola/
 
-    # 7. Build do TWRP
+    # 7. 🔥 FIX BUILD SYSTEM (SEU ERRO ATUAL VTS/CTS)
+    - name: Fix build environment
+      run: |
+        export ALLOW_MISSING_DEPENDENCIES=true
+        export SKIP_ABI_CHECKS=true
+
+    # 8. Build recovery
     - name: Build recovery
       run: |
         cd twrp
         source build/envsetup.sh
         lunch twrp_cancunf-eng
+        export ALLOW_MISSING_DEPENDENCIES=true
+        export SKIP_ABI_CHECKS=true
         mka recoveryimage
 
-    # 8. Upload do recovery
+    # 9. Upload result
     - name: Upload recovery
       uses: actions/upload-artifact@v4
       with:
